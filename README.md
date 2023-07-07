@@ -70,7 +70,7 @@ Base API Url: https://restcountries.com/v3.1
 Clone the project
 
 ```bash
-  git clone https://github.com/ChrisLegaxy/countries-catalog
+  git clone https://github.com/vanheng007/Countries-Catalog-Vanheng.git
 ```
 
 Go to the project directory
