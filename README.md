@@ -1,20 +1,20 @@
 
 # Countries Around The World
 
-This project will show the list of countries around the world. The project is purely frontend side where the data we get is from https://restcountries.com
+This project will show a list of countries around the world. The project is purely frontend side where the data we get is from https://restcountries.com
 
 ## Case Studies
 
-From the API provided, there's technically only 2 API endpoints we can use which is the 
-endpoints that gives us all the list of all countries and the one that search by name.
+From the API provided, there are technically only 2 API endpoints we can use which are the 
+endpoints that give us all the list of all countries and the one that searches by name.
 
 Since the API won't provide partial data load such as limit response, sorting and so on,
-we will implement everything on client side with the full data loaded from the server/API.
+we will implement everything on the client side with the full data loaded from the server/API.
 
 ### Technical details to be developed
 - Searching/filtering
-- Client side pagination
-- Client side sorting/ordering
+- Client-side pagination
+- Client-side sorting/ordering
 - Dialog popup
 
 ### Pros
@@ -22,12 +22,12 @@ we will implement everything on client side with the full data loaded from the s
 
 ### Drawbacks
 - Long initial load (since we query all the data to frontend)
-- Add a lot more additional work to client side to implement such as sorting and pagination
-- Add more JS which impact performances
+- Add a lot more additional work to the client side to implement such as sorting and pagination
+- Add more JS which impacts performances
 
 ### Personal Opinions
 I believe this was done way before at some point. But right now, at least from my experiences,
-is that we have the backend handle everything such as filtering, sorting, pagination for us and frontend
+is that we have the backend handle everything such as filtering, sorting, and pagination for us, and frontend
 only display the correct data.
 
 
@@ -62,7 +62,7 @@ Base API Url: https://restcountries.com/v3.1
 
 | Parameter | Type     | Description                       |
 | :-------- | :------- | :-------------------------------- |
-| `countryName`| `string` | **Required**. native name or partial name of country to fetch |
+| `countryName`| `string` | **Required**. native name or partial name of the country to fetch |
 
 
 ### Run Locally
