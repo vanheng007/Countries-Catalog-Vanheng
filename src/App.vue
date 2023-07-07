@@ -1,0 +1,445 @@
+<template>
+  <main>
+    <div class="container mx-auto sm:px-12">
+      <header>
+        <div class="px-4">
+          <div class="text-4xl font-bold mt-10 inline-block">
+            Countries Catalog
+          </div>
+          <!-- Search -->
+          <div class="relative mt-8">
+            <div>
+              <div
+                class="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  ></path>
+                </svg>
+              </div>
+              <input
+                id="default-search"
+                v-model="searchCriteria"
+                type="search"
+                class="block p-4 pl-10 w-full rounded-sm border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Country Name"
+              />
+              <div class="text-red-400 mt-2.5 absolute">
+                {{ error?.response?.data.message }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Sorting -->
+          <div class="mt-12">Sort by name</div>
+          <div class="flex">
+            <div class="flex gap-x-2 flex-wrap">
+              <button
+                :class="{
+                  'bg-sky-700 text-white': orderNameBy === OrderBy.ASC,
+                }"
+                class="button-alt border-2 border-sky-700 hover:text-white"
+                @click="orderCountryNameBy(OrderBy.ASC)"
+              >
+                Ascending
+              </button>
+              <button
+                :class="{
+                  'bg-sky-700 text-white': orderNameBy === OrderBy.DESC,
+                }"
+                class="button-alt border-2 border-sky-700 hover:text-white"
+                @click="orderCountryNameBy(OrderBy.DESC)"
+              >
+                Descending
+              </button>
+              <button class="button" @click="reset">Reset</button>
+            </div>
+
+     
+            
+          </div>
+        </div>
+      </header>
+ <!-- Country Catalog Wrapper -->
+ <div class="my-4 md:mb-12">
+  <!-- Country List -->
+  <div v-for="(country, index) in displayCountries" :key="index" class="my-4">
+    <div class="flex items-center space-x-4">
+      <div class="w-1/4">
+        <div class="aspect-[1.5] p-4">
+          <img :src="country.flags.png" class="w-full h-full" />
+        </div>
+      </div>
+      <div class="w-3/4">
+        <div class="font-bold truncate cursor-pointer" @click="viewCountryDetails(country)" :title="country.name.official">
+          {{ country.name.official }}
+        </div>
+        <div class="mt-1">
+          <div><span class="font-medium">CCA2:</span> {{ country.cca2 }}</div>
+          <div><span class="font-medium">CCA3:</span> {{ country.cca3 }}</div>
+          <div><span class="font-medium">Alternative Spellings:</span> {{ country.altSpellings.join(", ") }}</div>
+          <div><span class="font-medium">IDD Root:</span> {{ country.idd.root }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+  <div class="p-4 flex-wrap hidden ml-auto md:flex gap-x-2 items-center">
+    <nav aria-label="Page navigation">
+      <ul class="inline-flex">
+        <li>
+          <button
+            :disabled="currentPage === 1"
+            class="px-4 py-2 text-green-600 transition-colors duration-150 bg-white border border-r-0 border-green-600 rounded-l-lg focus:shadow-outline hover:bg-green-100"
+            @click="prev"
+          >
+            Prev
+          </button>
+        </li>
+        <li v-for="pageNumber in pageCount" :key="pageNumber">
+          <button
+            :class="{
+              'px-4 py-2 text-green-600 transition-colors duration-150 bg-white border border-r-0 border-green-600 focus:shadow-outline': pageNumber !== currentPage,
+              'px-4 py-2 text-white bg-sky-700 border border-r-0 rounded-none focus:shadow-outline hover:bg-sky-800': pageNumber === currentPage
+            }"
+            @click="gotoPage(pageNumber)"
+          >
+            {{ pageNumber }}
+          </button>
+        </li>
+        <li>
+          <button
+            :disabled="currentPage === pageCount"
+            class="px-4 py-2 text-green-600 transition-colors duration-150 bg-white border border-green-600 rounded-r-lg focus:shadow-outline hover:bg-green-100"
+            @click="next"
+          >
+            Next
+          </button>
+        </li>
+      </ul>
+    </nav>
+  </div>
+ <!-- Mobile Pagination -->
+<div class="flex gap-x-2 justify-end mb-12 md:hidden px-4">
+  <nav aria-label="Page navigation">
+    <ul class="inline-flex">
+      <li>
+        <button
+          :disabled="isFirstPage"
+          :class="{
+            'px-4 py-2 text-green-600 transition-colors duration-150 bg-white border border-r-0 border-green-600 rounded-l-lg focus:shadow-outline hover:bg-green-100': !isFirstPage,
+            'px-4 py-2 text-gray-400 bg-gray-200 border border-r-0 rounded-l-lg cursor-not-allowed': isFirstPage
+          }"
+          @click="prev"
+        >
+          Prev
+        </button>
+      </li>
+      <li>
+        <button
+          :disabled="isLastPage"
+          :class="{
+            'px-4 py-2 text-green-600 transition-colors duration-150 bg-white border border-green-600 rounded-r-lg focus:shadow-outline hover:bg-green-100': !isLastPage,
+            'px-4 py-2 text-gray-400 bg-gray-200 border rounded-r-lg cursor-not-allowed': isLastPage
+          }"
+          @click="next"
+        >
+          Next
+        </button>
+      </li>
+    </ul>
+  </nav>
+</div>
+
+
+      <!-- Country Dialog -->
+      <TransitionRoot appear :show="isDialogOpen" as="template">
+        <Dialog as="div" class="relative z-10" @close="closeModal">
+          <TransitionChild
+            as="template"
+            enter="duration-300 ease-out"
+            enter-from="opacity-0"
+            enter-to="opacity-100"
+            leave="duration-200 ease-in"
+            leave-from="opacity-100"
+            leave-to="opacity-0"
+          >
+            <div class="fixed inset-0 bg-black bg-opacity-25" />
+          </TransitionChild>
+
+          <div class="fixed inset-0 overflow-y-auto">
+            <div
+              class="flex min-h-full items-center justify-center p-4 text-center"
+            >
+              <TransitionChild
+                as="template"
+                enter="duration-300 ease-out"
+                enter-from="opacity-0 scale-95"
+                enter-to="opacity-100 scale-100"
+                leave="duration-200 ease-in"
+                leave-from="opacity-100 scale-100"
+                leave-to="opacity-0 scale-95"
+              >
+                <DialogPanel
+                  class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all"
+                >
+                  <div class="aspect-[1.5]">
+                    <img
+                      :src="currentCountry?.flags.png"
+                      class="w-full h-full"
+                    />
+                  </div>
+                  <DialogTitle
+                    as="h3"
+                    class="text-lg font-bold leading-6 text-gray-900 mt-4"
+                  >
+                    {{ currentCountry?.name.official }}
+                  </DialogTitle>
+                  <div class="mt-2">
+                    <div>
+                      <span class="font-medium">CCA2:</span>
+                      {{ currentCountry?.cca2 }}
+                    </div>
+                    <div>
+                      <span class="font-medium">CCA3:</span>
+                      {{ currentCountry?.cca3 }}
+                    </div>
+                    <div>
+                      <span class="font-medium">Alternative Spellings:</span>
+                      {{ currentCountry?.altSpellings.join(", ") }}
+                    </div>
+                    <div>
+                      <span class="font-medium">IDD Root:</span>
+                      {{ currentCountry?.idd.root }}
+                    </div>
+                  </div>
+
+                  <div class="mt-4">
+                    <button
+                      type="button"
+                      class="button w-full"
+                      @click="closeModal"
+                    >
+                      Got it, thanks!
+                    </button>
+                  </div>
+                </DialogPanel>
+              </TransitionChild>
+            </div>
+          </div>
+        </Dialog>
+      </TransitionRoot>
+    </div>
+    <!-- Loading Spinner -->
+    <div
+      v-if="isLoading || loading"
+      class="fixed inset-0 w-full h-full grid place-items-center bg-sky-100/60"
+    >
+      <half-circle-spinner
+        :animation-duration="1000"
+        :size="60"
+        color="#0ea5e9"
+      />
+    </div>
+  </main>
+</template>
+
+<script lang="ts" setup>
+import { ref, watch, watchEffect, computed } from "vue";
+import { useAxios } from "@vueuse/integrations/useAxios";
+import { useOffsetPagination } from "@vueuse/core";
+import { HalfCircleSpinner } from "epic-spinners";
+import {
+  TransitionRoot,
+  TransitionChild,
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+} from "@headlessui/vue";
+import _ from "lodash";
+
+import { axiosInstance } from "./libs/http";
+import { Country } from "./interfaces/Country";
+
+const loading = ref(false);
+
+/**
+ * * Load data from API via Axios
+ */
+const {
+  data: countries,
+  isLoading,
+  execute,
+  error,
+} = useAxios<Country[] | any>("/all", axiosInstance);
+const savedCountries = ref<Country[]>([]);
+/**
+ * * Search
+ */
+let searchTimeout: any; // for clearing search timeout functions to avoid excessive calls
+const searchCriteria = ref("");
+
+watch(searchCriteria, () => {
+  // avoid excessive calls
+  clearTimeout(searchTimeout);
+
+  if (searchCriteria.value) {
+    // searchTimeout = setTimeout(() => {
+    //   execute(`/name/${searchCriteria.value}`);
+    // }, 1000);
+    countries.value = savedCountries.value?.filter((country) =>
+      country.name.official
+        .toLowerCase()
+        .includes(searchCriteria.value.toLowerCase())
+    );
+  } else {
+    // clearTimeout(searchTimeout);
+    // searchTimeout = setTimeout(() => {
+    //   execute();
+    // }, 1000);
+    countries.value = savedCountries.value;
+  }
+
+  orderNameBy.value = "";
+});
+
+/**
+ * * Pagination
+ */
+const displayCountries = ref();
+const pageSize = ref(25);
+const pageCount = ref();
+const page = ref();
+
+const fetchData = ({
+  currentPage,
+  currentPageSize,
+}: {
+  currentPage: number;
+  currentPageSize: number;
+}) => {
+  const start = (currentPage - 1) * currentPageSize;
+  const end = start + currentPageSize;
+  displayCountries.value = countries.value?.slice(start, end);
+};
+
+const { currentPage, currentPageSize, isFirstPage, prev, next } =
+  useOffsetPagination({
+    total: countries.value?.length,
+    page,
+    pageSize,
+    onPageChange: fetchData,
+  });
+  
+  const gotoPage = (pageNumber: number) => {
+  page.value = pageNumber;
+  fetchData({
+    currentPage: pageNumber,
+    currentPageSize: pageSize.value,
+  });
+};
+
+/**
+ * * Custom Last Page Logic
+ *
+ * Due to problem with useOffsetPagination package has bugs that doesn't
+ * support async/await to get the actual pageCount
+ */
+const initalLoad = () => {
+  // inital load
+  displayCountries.value = countries.value?.slice(0, pageSize.value);
+  page.value = 1;
+
+  // custom last page logic for getting page count
+  if (countries.value) {
+    pageCount.value = Math.max(
+      1,
+      Math.ceil(countries.value.length / currentPageSize.value)
+    );
+  }
+
+  // save all data
+  if (countries.value && savedCountries.value.length <= 0) {
+    savedCountries.value = countries.value;
+  }
+};
+
+const isLastPage = computed(() => currentPage.value === pageCount.value);
+
+watchEffect(() => {
+  initalLoad();
+});
+
+/**
+ * * Country Dialog
+ */
+const isDialogOpen = ref(false);
+const currentCountry = ref<Country>();
+
+const viewCountryDetails = (country: Country) => {
+  currentCountry.value = country;
+  isDialogOpen.value = true;
+};
+
+const closeModal = () => {
+  isDialogOpen.value = false;
+};
+
+/**
+ * * Order By
+ */
+enum OrderBy {
+  ASC = "ASC",
+  DESC = "DESC",
+}
+const orderNameBy = ref();
+
+const orderCountryNameBy = (order: OrderBy) => {
+  orderNameBy.value = order;
+  loading.value = true;
+
+  if (order === OrderBy.ASC) {
+    countries.value = _.orderBy(countries.value, ["name.official"], "asc");
+  } else if (order === OrderBy.DESC) {
+    countries.value = _.orderBy(countries.value, ["name.official"], "desc");
+  }
+
+  // just additional UX
+  setTimeout(() => {
+    loading.value = false;
+  }, 1000);
+};
+
+const reset = () => {
+  loading.value = true;
+  orderNameBy.value = "";
+  searchCriteria.value = "";
+  execute();
+  initalLoad();
+
+  setTimeout(() => {
+    loading.value = false;
+  }, 1000);
+};
+</script>
+
+<style lang="scss" scoped>
+.button {
+  @apply px-5 py-2.5 mt-4 text-white font-medium rounded-sm text-sm bg-sky-700 hover:bg-sky-800 focus:ring-2 focus:ring-blue-300;
+}
+
+.button-alt {
+  @apply px-5 py-2.5 mt-4 font-medium rounded-sm text-sm hover:bg-sky-800 focus:ring-2 focus:ring-blue-300;
+}
+</style>
