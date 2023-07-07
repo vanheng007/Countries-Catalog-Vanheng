@@ -64,10 +64,7 @@
                 Descending
               </button>
               <button class="button" @click="reset">Reset</button>
-            </div>
-
-     
-            
+            </div>  
           </div>
         </div>
       </header>
@@ -161,8 +158,6 @@
     </ul>
   </nav>
 </div>
-
-
       <!-- Country Dialog -->
       <TransitionRoot appear :show="isDialogOpen" as="template">
         <Dialog as="div" class="relative z-10" @close="closeModal">
