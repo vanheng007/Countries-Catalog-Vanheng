@@ -76,7 +76,7 @@ Clone the project
 Go to the project directory
 
 ```bash
-  cd countries-catalog
+  cd Countries-Catalog-Vanheng
 ```
 
 Install dependencies
